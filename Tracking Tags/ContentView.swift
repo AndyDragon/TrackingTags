@@ -37,6 +37,17 @@ struct ContentView: View {
                     Text("User: ")
                     TextField("Enter user name without '@'", text: $userName.onChange(updateTrackingTags))
                         .focused($focusedField, equals: .userName)
+                    Button(action: {
+                        userName = pasteFromClipboard()
+                        updateTrackingTags(to: userName)
+                    }) {
+                        HStack {
+                            Image(systemName: "clipboard")
+                                .frame(alignment: .center)
+                            Text("Paste")
+                                .frame(alignment: .center)
+                        }
+                    }
                 }
                 HStack {
                     Text("Page: ")
@@ -66,13 +77,12 @@ struct ContentView: View {
                                 }
                             }
                         }
-                        .padding(4)
+                        .padding([.top], 8)
                         .onTapGesture {
                             selectedTrackingTag = trackingTag
                         }
                     }
                 }
-                Spacer()
             }
             .padding()
             .allowsHitTesting(!isAnyToastShowing)
@@ -202,5 +212,10 @@ struct ContentView: View {
         pasteBoard.clearContents()
         pasteBoard.writeObjects([text as NSString])
 #endif
+    }
+    
+    private func pasteFromClipboard() -> String {
+        let pasteBoard = NSPasteboard.general
+        return pasteBoard.string(forType: .string) ?? ""
     }
 }
