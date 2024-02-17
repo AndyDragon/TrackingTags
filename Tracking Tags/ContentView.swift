@@ -22,57 +22,74 @@ struct ContentView: View {
     @FocusState var focusedField: FocusedField?
     @State var pagesCatalog = PageCatalog(pages: [])
     var appState: VersionCheckAppState
-    
+    private var isAnyToastShowing: Bool {
+        isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue
+    }
+
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
 
     var body: some View {
-        VStack {
-            HStack {
-                Text("User: ")
-                TextField("Enter user name without '@'", text: $userName.onChange(updateTrackingTags))
-                    .focused($focusedField, equals: .userName)
-            }
-            HStack {
-                Text("Page: ")
-                Picker("", selection: $page.onChange(updateTrackingTags)) {
-                    ForEach(pagesCatalog.pages) { page in
-                        Text(page.name).tag(page.name)
-                    }
+        ZStack {
+            VStack {
+                HStack {
+                    Text("User: ")
+                    TextField("Enter user name without '@'", text: $userName.onChange(updateTrackingTags))
+                        .focused($focusedField, equals: .userName)
                 }
-                .focusable()
-                .focused($focusedField, equals: .page)
-            }
-            List(selection: $selectedTrackingTag) {
-                ForEach(trackingTags, id: \.self) { trackingTag in
-                    HStack {
-                        Text(trackingTag.tag)
-                            .frame(alignment: .center)
-                        Spacer()
-                        Button(action: {
-                            copyToClipboard(trackingTag.tag)
-                            showToast("Copied!", "Copied \(trackingTag.tag) to the clipboard")
-                        }) {
-                            HStack {
-                                Image(systemName: "clipboard")
-                                    .frame(alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                                Text("Copy")
-                                    .frame(alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
-                            }
+                HStack {
+                    Text("Page: ")
+                    Picker("", selection: $page.onChange(updateTrackingTags)) {
+                        ForEach(pagesCatalog.pages) { page in
+                            Text(page.name).tag(page.name)
                         }
                     }
-                    .padding(4)
-                    .onTapGesture {
-                        selectedTrackingTag = trackingTag
+                    .focusable()
+                    .focused($focusedField, equals: .page)
+                }
+                List(selection: $selectedTrackingTag) {
+                    ForEach(trackingTags, id: \.self) { trackingTag in
+                        HStack {
+                            Text(trackingTag.tag)
+                                .frame(alignment: .center)
+                            Spacer()
+                            Button(action: {
+                                copyToClipboard(trackingTag.tag)
+                                showToast("Copied!", "Copied \(trackingTag.tag) to the clipboard")
+                            }) {
+                                HStack {
+                                    Image(systemName: "clipboard")
+                                        .frame(alignment: .center)
+                                    Text("Copy")
+                                        .frame(alignment: .center)
+                                }
+                            }
+                        }
+                        .padding(4)
+                        .onTapGesture {
+                            selectedTrackingTag = trackingTag
+                        }
+                    }
+                }
+                Spacer()
+            }
+            .padding()
+            .allowsHitTesting(!isAnyToastShowing)
+            if isAnyToastShowing {
+                VStack {
+                    Rectangle().opacity(0.0000001)
+                }
+                .onTapGesture {
+                    if isShowingToast {
+                        isShowingToast.toggle()
+                    } else if appState.isShowingVersionAvailableToast.wrappedValue {
+                        appState.isShowingVersionAvailableToast.wrappedValue.toggle()
                     }
                 }
             }
-            Spacer()
         }
-        .blur(radius: (isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue) ? 4 : 0)
-        .allowsHitTesting(!(isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue))
-        .padding()
+        .blur(radius: isAnyToastShowing ? 4 : 0)
         .toast(
             isPresenting: $isShowingToast,
             duration: 1,
@@ -130,10 +147,11 @@ struct ContentView: View {
             completion: {
                 appState.resetCheckingForUpdates()
                 focusedField = .userName
-            })        .onAppear {
-                focusedField = .userName
-            }
-            .task {
+            })        
+        .onAppear {
+            focusedField = .userName
+        }
+        .task {
             do {
                 let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
                 pagesCatalog = try await URLSession.shared.decode(PageCatalog.self, from: pagesUrl)
@@ -141,7 +159,7 @@ struct ContentView: View {
                 do {
                     // Delay the start of the disallowed list download so the window can be ready faster
                     try await Task.sleep(nanoseconds: 100_000_000)
-
+                    
                     appState.checkForUpdates()
                 } catch {
                     // do nothing, the version check is not critical
@@ -152,7 +170,7 @@ struct ContentView: View {
             }
         }
     }
-    
+
     private func updateTrackingTags(to value: String) {
         trackingTags.removeAll()
         UserDefaults.standard.set(page, forKey: "Page")
@@ -167,7 +185,7 @@ struct ContentView: View {
             trackingTags.append(TrackingTag("raw_featured_\(userName)"))
         }
     }
-    
+
     private func showToast(_ text: String, _ subTitle: String, duration: Double = 3.0) {
         toastType = .complete(.blue)
         toastText = text
@@ -175,7 +193,7 @@ struct ContentView: View {
         toastDuration = duration
         isShowingToast.toggle()
     }
-    
+
     private func copyToClipboard(_ text: String) -> Void {
 #if os(iOS)
         UIPasteboard.general.string = text
