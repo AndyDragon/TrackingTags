@@ -1,0 +1,4 @@
+{
+    "dotnet.defaultSolution": "Tracking Tags MAUI.sln",
+    "cmake.configureOnOpen": false
+}
