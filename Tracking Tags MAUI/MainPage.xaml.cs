@@ -2,23 +2,24 @@
 
 public partial class MainPage : ContentPage
 {
-	int count = 0;
-
 	public MainPage()
 	{
 		InitializeComponent();
 	}
 
-	private void OnCounterClicked(object sender, EventArgs e)
+	private void OnInputChanged(object sender, EventArgs e)
 	{
-		count++;
+		var userName = UserNameEntry.Text;
+		var pageName = PagePicker.SelectedItem as String ?? "";
 
-		if (count == 1)
-			CounterBtn.Text = $"Clicked {count} time";
-		else
-			CounterBtn.Text = $"Clicked {count} times";
+        if (BindingContext is TagsViewModel viewModel)
+        {
+            viewModel.SetUserName(userName, pageName);
+        }
+	}
 
-		SemanticScreenReader.Announce(CounterBtn.Text);
+	private async void OnPasteUserName(object sender, EventArgs e)
+	{
+		UserNameEntry.Text = await Clipboard.Default.GetTextAsync();
 	}
 }
-
