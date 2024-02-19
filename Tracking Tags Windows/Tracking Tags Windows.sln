@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tracking Tags", "Tracking Tags\Tracking Tags.csproj", "{C648E8A5-AF00-400B-9A9A-DF2D73852F84}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C648E8A5-AF00-400B-9A9A-DF2D73852F84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C648E8A5-AF00-400B-9A9A-DF2D73852F84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C648E8A5-AF00-400B-9A9A-DF2D73852F84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C648E8A5-AF00-400B-9A9A-DF2D73852F84}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4950ADC2-2CCB-4888-A69E-36EA02449750}
+	EndGlobalSection
+EndGlobal

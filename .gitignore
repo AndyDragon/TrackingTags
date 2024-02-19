@@ -88,6 +88,11 @@ fastlane/test_output
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+
 Tracking Tags MAUI/obj/
 Tracking Tags MAUI/bin/
 .vs/
+
+*.csproj.user
+Tracking Tags Windows/Tracking Tags/obj/
+Tracking Tags Windows/Tracking Tags/bin/
