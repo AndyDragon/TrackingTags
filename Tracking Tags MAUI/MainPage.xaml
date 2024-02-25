@@ -67,24 +67,6 @@
                 Margin="12,4" />
         </Grid>
 
-        <!--
-        <HorizontalStackLayout
-            Spacing="12"
-            HorizontalOptions="Fill">
-            <Label
-                VerticalOptions="Center">
-                Page:
-            </Label>
-            <Picker
-                x:Name="PagePicker"
-                Title="Select a page"
-                ItemsSource="{Binding Pages}"
-                SelectedIndexChanged="OnInputChanged"
-                HorizontalOptions="Fill"
-                VerticalOptions="Center" />
-        </HorizontalStackLayout>
-        -->
-
         <Border
             HorizontalOptions="Fill"
             VerticalOptions="Fill"
