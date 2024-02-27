@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.IO;
 using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Principal;
 using System.Windows;
 using System.Windows.Input;
 using Newtonsoft.Json;
 using Notification.Wpf;
+using ControlzEx.Theming;
 
-using Tracking_Tags.Properties;
-
-namespace Tracking_Tags
+namespace TrackingTags
 {
-    internal class MainViewModel : INotifyPropertyChanged
+    internal class MainViewModel : NotifyPropertyChanged
     {
         private readonly HttpClient httpClient = new();
         private readonly NotificationManager notificationManager = new();
@@ -22,42 +21,60 @@ namespace Tracking_Tags
         {
             Tags = [];
             Pages = [];
-            Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "---";
 
             _ = LoadPages();
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        #region Data locations
 
-        public string Version { get; set; }
+        private static string GetDataLocationPath()
+        {
+            var user = WindowsIdentity.GetCurrent();
+            var dataLocationPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "AndyDragonSoftware",
+                "TrackingTags",
+                user.Name);
+            if (!Directory.Exists(dataLocationPath))
+            {
+                Directory.CreateDirectory(dataLocationPath);
+            }
+            return dataLocationPath;
+        }
+
+        public static string GetUserSettingsPath()
+        {
+            var dataLocationPath = GetDataLocationPath();
+            return Path.Combine(dataLocationPath, "settings.json");
+        }
+
+        #endregion
 
         #region Themes
 
-        private string themeName = "";
-
-        public string ThemeName
+        private Theme? theme = ThemeManager.Current.DetectTheme();
+        public Theme? Theme
         {
-            get
-            {
-                return themeName switch
-                {
-                    "SoftDark" => "Soft dark",
-                    "LightTheme" => "Light",
-                    "DeepDark" => "Deep dark",
-                    "DarkGreyTheme" => "Dark gray",
-                    "GreyTheme" => "Gray",
-                    _ => themeName,
-                };
-            }
+            get => theme;
             set
             {
-                if (themeName != value)
+                if (Set(ref theme, value))
                 {
-                    themeName = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ThemeName)));
+                    if (Theme != null)
+                    {
+                        ThemeManager.Current.ChangeTheme(Application.Current, Theme);
+                        UserSettings.Store("theme", Theme.Name);
+                    }
                 }
             }
         }
+
+        public ThemeOption[] Themes => [.. ThemeManager.Current.Themes.OrderBy(theme => theme.Name).Select(theme => new ThemeOption(theme, theme == Theme))];
+
+        #endregion
+
+        #region Version
+        public static string Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "---";
 
         #endregion
 
@@ -66,13 +83,11 @@ namespace Tracking_Tags
         private string userName = string.Empty;
         public string UserName 
         {
-            get { return userName; } 
+            get => userName;
             set 
             {
-                if (userName != value)
+                if (Set(ref userName, value))
                 {
-                    userName = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UserName)));
                     PopulateTags();
                 }
             } 
@@ -82,19 +97,16 @@ namespace Tracking_Tags
 
         #region Page name
 
-        private string pageName = Settings.Default.Page ?? string.Empty;
+        private string pageName = UserSettings.Get("Page", string.Empty);
         public string PageName
         {
-            get { return pageName; }
+            get => pageName;
             set
             {
-                if (pageName != value)
+                if (Set(ref pageName, value))
                 {
-                    pageName = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageName)));
                     PopulateTags();
-                    Settings.Default.Page = value;
-                    Settings.Default.Save();
+                    UserSettings.Store("Page", value);
                 }
             }
         }
@@ -103,24 +115,64 @@ namespace Tracking_Tags
 
         #region Include hash
 
-        private bool includeHash = Settings.Default.IncludeHash;
+        private bool includeHash = UserSettings.Get("IncludeHash", false);
         public bool IncludeHash
         {
-            get { return includeHash; }
+            get => includeHash;
             set
             {
-                if (includeHash != value)
+                if (Set(ref includeHash, value))
                 {
-                    includeHash = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IncludeHash)));
                     PopulateTags();
-                    Settings.Default.IncludeHash = value;
-                    Settings.Default.Save();
+                    UserSettings.Store("IncludeHash", value);
                 }
             }        
         }
 
         #endregion
+
+        public void ShowToast(
+            string title,
+            string message,
+            NotificationType type = NotificationType.Success,
+            TimeSpan? duration = null)
+        {
+            notificationManager.Show(title, message, type: type, areaName: "WindowArea", expirationTime: duration ?? TimeSpan.FromSeconds(3));
+        }
+
+        private ICommand? pasteUserCommand = null;
+        public ICommand PasteUserCommand
+        {
+            get
+            {
+                pasteUserCommand ??= new Command(
+                    () =>
+                    {
+                        if (Clipboard.ContainsText())
+                        {
+                            UserName = Clipboard.GetText();
+                        }
+                    });
+                return pasteUserCommand;
+            }
+        }
+
+        private ICommand? setThemeCommand = null;
+        public ICommand SetThemeCommand
+        {
+            get
+            {
+                setThemeCommand ??= new CommandWithParameter(
+                    (parameter) =>
+                    {
+                        if (parameter is Theme theme)
+                        {
+                            Theme = theme;
+                        }
+                    });
+                return setThemeCommand;
+            }
+        }
 
         public ObservableCollection<Tag> Tags { get; private set; }
 
@@ -130,10 +182,10 @@ namespace Tracking_Tags
             if (!string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(PageName))
             {
                 var prefix = IncludeHash ? "#" : "";
-                Tags.Add(new Tag($"{prefix}snap_{PageName}_{UserName}", notificationManager));
-                Tags.Add(new Tag($"{prefix}raw_{PageName}_{UserName}", notificationManager));
-                Tags.Add(new Tag($"{prefix}snap_featured_{UserName}", notificationManager));
-                Tags.Add(new Tag($"{prefix}raw_featured_{UserName}", notificationManager));
+                Tags.Add(new Tag($"{prefix}snap_{PageName}_{UserName}", this));
+                Tags.Add(new Tag($"{prefix}raw_{PageName}_{UserName}", this));
+                Tags.Add(new Tag($"{prefix}snap_featured_{UserName}", this));
+                Tags.Add(new Tag($"{prefix}raw_featured_{UserName}", this));
             }
         }
 
@@ -161,13 +213,17 @@ namespace Tracking_Tags
             }
             catch (Exception ex)
             {
-                // TODO andydragon : handle errors
-                Console.WriteLine("Error occurred: {0}", ex.Message);
+                ShowToast(
+                    "Failed to load pages",
+                    $"Failed to load the pages from the server: {ex.Message}",
+                    NotificationType.Error,
+                    TimeSpan.FromSeconds(10));
+                
             }
         }
     }
 
-    internal class Tag(string text, NotificationManager notificationManager)
+    internal class Tag(string text, MainViewModel viewModel)
     {
         public string Text { get; set; } = text;
 
@@ -177,41 +233,19 @@ namespace Tracking_Tags
         {
             get
             {
-                return copyCommand ??= new CommandHandler(
-                    () => 
+                copyCommand ??= new Command(
+                    () =>
                     {
                         Clipboard.SetText(Text);
-                        notificationManager.Show(
+                        viewModel.ShowToast(
                             "Copied",
                             "Copied the tag to the clipboard",
-                            type: NotificationType.Success,
-                            areaName: "WindowArea",
-                            expirationTime: TimeSpan.FromSeconds(1.5));
-                    }, 
+                            NotificationType.Success,
+                            TimeSpan.FromSeconds(1.5));
+                    },
                     () => !string.IsNullOrEmpty(Text));
+                return copyCommand;
             }
-        }
-    }
-
-    public class CommandHandler(Action action, Func<bool> canExecute) : ICommand
-    {
-        private readonly Action action = action;
-        private readonly Func<bool> canExecute = canExecute;
-
-        public event EventHandler? CanExecuteChanged
-        {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
-        }
-
-        public bool CanExecute(object? parameter)
-        {
-            return canExecute();
-        }
-
-        public void Execute(object? parameter)
-        {
-            action();
         }
     }
 
@@ -234,5 +268,12 @@ namespace Tracking_Tags
 
         public string Name { get; set; }
         public string? PageName { get; set; }
+    }
+
+    public class ThemeOption(Theme theme, bool isSelected = false)
+    {
+        public Theme Theme { get; } = theme;
+
+        public bool IsSelected { get; } = isSelected;
     }
 }
