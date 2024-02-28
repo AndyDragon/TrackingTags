@@ -3,5 +3,10 @@
         "current": "1.0.1",
         "link": "https://github.com/AndyDragon/TrackingTags/releases/tag/build_1",
         "vital": false
+    },
+    "windows": {
+        "current": "1.0.2",
+        "link": "https://vero.andydragon.com/app/trackingtags/windows",
+        "vital": false
     }
 }
