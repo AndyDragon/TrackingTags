@@ -96,3 +96,6 @@ Tracking Tags MAUI/bin/
 *.csproj.user
 Tracking Tags Windows/Tracking Tags/obj/
 Tracking Tags Windows/Tracking Tags/bin/
+
+*.xcbkptlist
+**/xcuserdata/
