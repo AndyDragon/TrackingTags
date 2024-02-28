@@ -1,4 +1,23 @@
 export const applicationName = "Tracking Tags";
+export const applicationDescription = "Tracking is a small utility app for producing snap tracking tags.";
+export const applicationDetails = (
+    <>
+        This utility lets you enter a user name and pick a snap page and it will generate the four snap tracking tags for the
+        user. This includes:
+        <br /><br />
+        <div style={{marginLeft: "40px"}}>&#x27A4;&nbsp;&nbsp;snap_<em>pagename</em>_<em>username</em></div>
+        <div style={{marginLeft: "40px"}}>&#x27A4;&nbsp;&nbsp;raw_<em>pagename</em>_<em>username</em></div>
+        <div style={{marginLeft: "40px"}}>&#x27A4;&nbsp;&nbsp;snap_featured_<em>username</em></div>
+        <div style={{marginLeft: "40px"}}>&#x27A4;&nbsp;&nbsp;raw_featured_<em>username</em></div>
+        <br />
+        These tags are used to track features for a user as part of featuring their photos as well as determining membership
+        levels.
+    </>
+);
+export const macScreenshotWidth = 720;
+export const macScreenshotHeight = 400;
+
+export const deploymentWebLocation = "/app/trackingtags";
 
 export const versionLocation = "trackingtags/version.json";
 
