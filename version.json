@@ -1,12 +1,12 @@
 {
     "macOS": {
         "current": "1.0.1",
-        "link": "https://github.com/AndyDragon/TrackingTags/releases/tag/macos_build_1",
+        "link": "https://vero.andydragon.com/app/trackingtags/macInstall",
         "vital": false
     },
     "windows": {
         "current": "1.0.2",
-        "link": "https://vero.andydragon.com/app/trackingtags/windows",
+        "link": "https://vero.andydragon.com/app/trackingtags/windowsInstall",
         "vital": false
     }
 }
