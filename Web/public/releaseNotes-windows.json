@@ -1,1 +1,46 @@
-[]
+[
+    {
+        "version": "1.0.0",
+        "notes": [
+            {
+                "date": "Feb 2024",
+                "notes": [
+                    "Initial release, internal release only"
+                ]
+            }
+        ]
+    },
+    {
+        "version": "1.0.1",
+        "notes": [
+            {
+                "date": "Feb 2024",
+                "notes": [
+                    "Second internal release"
+                ]
+            }
+        ]
+    },
+    {
+        "version": "1.0.2",
+        "notes": [
+            {
+                "date": "Feb 2024",
+                "notes": [
+                    "First public release"
+                ]
+            }
+        ]
+    },
+    {
+        "version": "1.0.3",
+        "notes": [
+            {
+                "date": "March 2, 2024",
+                "notes": [
+                    "Added hubs handling for pages"
+                ]
+            }
+        ]
+    }
+]

@@ -45,7 +45,13 @@
             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" Margin="4,4,4,4" />
             <Button Grid.Row="0" Grid.Column="2" Content="Paste" Command="{Binding PasteUserCommand}" VerticalAlignment="Center" Padding="8,2" Margin="4,4,0,4" />
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Page:" VerticalAlignment="Center" Margin="0,4,4,4" />
-            <ComboBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding Pages}" SelectedItem="{Binding PageName}" VerticalAlignment="Center" Margin="4,4,4,4" />
+            <ComboBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage}" VerticalAlignment="Center" Margin="4,4,4,4">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="local:LoadedPage">
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <Border Grid.Row="2" Grid.ColumnSpan="3" Margin="0,4,0,0" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource MahApps.Brushes.Control.Border}">
                 <ScrollViewer>
                     <ItemsControl ItemsSource="{Binding Tags}" Margin="10,4">
