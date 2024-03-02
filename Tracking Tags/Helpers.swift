@@ -54,3 +54,13 @@ extension Bundle {
         return releaseVersionNumberPretty.compare(than, options: .numeric) == .orderedAscending
     }
 }
+
+extension Array<String> {
+    func includes(_ element: String) -> Bool {
+        return self.contains(where: { item in item == element })
+    }
+    
+    func includesWithoutCase(_ element: String) -> Bool {
+        return self.contains(where: { item in item.lowercased() == element.lowercased() })
+    }
+}

@@ -97,5 +97,5 @@ Tracking Tags MAUI/bin/
 Tracking Tags Windows/Tracking Tags/obj/
 Tracking Tags Windows/Tracking Tags/bin/
 
-*.xcbkptlist
-**/xcuserdata/
+# *.xcbkptlist
+# **/xcuserdata/
