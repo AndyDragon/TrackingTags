@@ -236,23 +236,20 @@ namespace TrackingTags
                         var windowsUserName = parts.LastOrDefault();
                         foreach (var hub in pagesCatalog.Hubs)
                         {
-                            if (hub.Value != null)
+                            foreach (var hubPage in hub.Value)
                             {
-                                foreach (var hubPage in hub.Value)
+                                var canAddPage = true;
+                                if (hubPage.Users != null)
                                 {
-                                    var canAddPage = true;
-                                    if (hubPage.Users != null)
+                                    canAddPage = hubPage.Users.FirstOrDefault(user => string.Equals(user, windowsUserName, StringComparison.OrdinalIgnoreCase)) != null;
+                                }
+                                if (canAddPage)
+                                {
+                                    var loadedPage = new LoadedPage(hub.Key, hubPage);
+                                    loadedPages.Add(loadedPage);
+                                    if (loadedPage.Id == pageName)
                                     {
-                                        canAddPage = hubPage.Users.FirstOrDefault(user => string.Equals(user, windowsUserName, StringComparison.OrdinalIgnoreCase)) != null;
-                                    }
-                                    if (canAddPage)
-                                    {
-                                        var loadedPage = new LoadedPage(hub.Key, hubPage);
-                                        loadedPages.Add(loadedPage);
-                                        if (loadedPage.Id == pageName)
-                                        {
-                                            selectedPage = loadedPage;
-                                        }
+                                        selectedPage = loadedPage;
                                     }
                                 }
                             }
