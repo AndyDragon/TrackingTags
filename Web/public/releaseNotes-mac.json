@@ -31,5 +31,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.3",
+        "notes": [
+            {
+                "date": "March 3, 2024",
+                "notes": [
+                    "Fixed user ID handling for hub pages"
+                ]
+            }
+        ]
     }
 ]
