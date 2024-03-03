@@ -9,6 +9,8 @@ using System.Windows.Input;
 using Newtonsoft.Json;
 using Notification.Wpf;
 using ControlzEx.Theming;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace TrackingTags
 {
@@ -232,8 +234,8 @@ namespace TrackingTags
                     }
                     if (pagesCatalog.Hubs != null)
                     {
-                        var parts = WindowsIdentity.GetCurrent().Name.Split('\\');
-                        var windowsUserName = parts.LastOrDefault();
+                        var currentUser = WindowsIdentity.GetCurrent().User?.Value ?? "unknown";
+                        var currentUserHash = ComputeSHA256(currentUser);
                         foreach (var hub in pagesCatalog.Hubs)
                         {
                             foreach (var hubPage in hub.Value)
@@ -241,7 +243,7 @@ namespace TrackingTags
                                 var canAddPage = true;
                                 if (hubPage.Users != null)
                                 {
-                                    canAddPage = hubPage.Users.FirstOrDefault(user => string.Equals(user, windowsUserName, StringComparison.OrdinalIgnoreCase)) != null;
+                                    canAddPage = hubPage.Users.FirstOrDefault(user => string.Equals(user, currentUserHash, StringComparison.OrdinalIgnoreCase)) != null;
                                 }
                                 if (canAddPage)
                                 {
@@ -271,6 +273,21 @@ namespace TrackingTags
                     TimeSpan.FromSeconds(10));
                 
             }
+        }
+
+        private static string ComputeSHA256(string s)
+        {
+            // Compute the hash of the given string
+            byte[] hashValue = SHA256.HashData(Encoding.UTF8.GetBytes(s));
+
+            // Convert the byte array to string format
+            string hash = string.Empty;
+            foreach (byte b in hashValue)
+            {
+                hash += $"{b:X2}";
+            }
+
+            return hash;
         }
     }
 

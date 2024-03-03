@@ -42,5 +42,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.4",
+        "notes": [
+            {
+                "date": "March 3, 2024",
+                "notes": [
+                    "Changed handling of user ID for hubs"
+                ]
+            }
+        ]
     }
 ]
