@@ -184,21 +184,21 @@ namespace TrackingTags
             if (!string.IsNullOrEmpty(UserName) && SelectedPage != null)
             {
                 var prefix = IncludeHash ? "#" : "";
-                if (SelectedPage.Name.StartsWith('_'))
+                if (SelectedPage.HubName == "other")
                 {
-                    Tags.Add(new Tag($"{prefix}{SelectedPage.Name[1..]}_{UserName}", this));
+                    Tags.Add(new Tag($"{prefix}{SelectedPage.PageName ?? SelectedPage.Name}_{UserName}", this));
                 }
-                else if (!string.IsNullOrEmpty(SelectedPage.HubName))
-                {
-                    Tags.Add(new Tag($"{prefix}{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{UserName}", this));
-                    Tags.Add(new Tag($"{prefix}{SelectedPage.HubName}_featured_{UserName}", this));
-                }
-                else
+                else if (SelectedPage.HubName == "snap")
                 {
                     Tags.Add(new Tag($"{prefix}snap_{SelectedPage.PageName ?? SelectedPage.Name}_{UserName}", this));
                     Tags.Add(new Tag($"{prefix}raw_{SelectedPage.PageName ?? SelectedPage.Name}_{UserName}", this));
                     Tags.Add(new Tag($"{prefix}snap_featured_{UserName}", this));
                     Tags.Add(new Tag($"{prefix}raw_featured_{UserName}", this));
+                }
+                else
+                {
+                    Tags.Add(new Tag($"{prefix}{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{UserName}", this));
+                    Tags.Add(new Tag($"{prefix}{SelectedPage.HubName}_featured_{UserName}", this));
                 }
             }
         }
@@ -210,6 +210,11 @@ namespace TrackingTags
             try
             {
                 var pageName = UserSettings.Get("Page", string.Empty);
+                var pageParts = pageName.Split(':');
+                if (pageParts.Length == 1) 
+                {
+                    pageName = "snap:" + pageParts[0];
+                }
 
                 // Disable client-side caching.
                 httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
@@ -222,37 +227,18 @@ namespace TrackingTags
                 LoadedPage? selectedPage = null;
                 if (!string.IsNullOrEmpty(content))
                 {
-                    var pagesCatalog = JsonConvert.DeserializeObject<PagesCatalog>(content) ?? new PagesCatalog();
-                    foreach (var page in pagesCatalog.Pages)
-                    {
-                        var loadedPage = new LoadedPage(page);
-                        loadedPages.Add(loadedPage);
-                        if (loadedPage.Id == pageName)
-                        {
-                            selectedPage = loadedPage;
-                        }
-                    }
+                    var pagesCatalog = JsonConvert.DeserializeObject<ScriptsCatalog>(content) ?? new ScriptsCatalog();
                     if (pagesCatalog.Hubs != null)
                     {
-                        var currentUser = WindowsIdentity.GetCurrent().User?.Value ?? "unknown";
-                        var currentUserHash = ComputeSHA256(currentUser);
                         foreach (var hub in pagesCatalog.Hubs)
                         {
                             foreach (var hubPage in hub.Value)
                             {
-                                var canAddPage = true;
-                                if (hubPage.Users != null)
+                                var loadedPage = new LoadedPage(hub.Key, hubPage);
+                                loadedPages.Add(loadedPage);
+                                if (loadedPage.Id == pageName)
                                 {
-                                    canAddPage = hubPage.Users.FirstOrDefault(user => string.Equals(user, currentUserHash, StringComparison.OrdinalIgnoreCase)) != null;
-                                }
-                                if (canAddPage)
-                                {
-                                    var loadedPage = new LoadedPage(hub.Key, hubPage);
-                                    loadedPages.Add(loadedPage);
-                                    if (loadedPage.Id == pageName)
-                                    {
-                                        selectedPage = loadedPage;
-                                    }
+                                    selectedPage = loadedPage;
                                 }
                             }
                         }
@@ -307,24 +293,19 @@ namespace TrackingTags
             {
                 return 1;
             }
-            if (x.Id.StartsWith('_')&& y.Id.StartsWith('_'))
+            if (x.HubName == "other" && y.HubName == "other")
             {
-                return string.Compare(x.Id, y.Id, true);
+                return string.Compare(x.DisplayName, y.DisplayName, true);
             }
-            if (x.Id.StartsWith('_'))
+            if (x.HubName == "other")
             {
                 return 1;
             }
-            if (y.Id.StartsWith('_'))
+            if (y.HubName == "other")
             {
                 return -1;
             }
-            int hubCompare = string.Compare(x.HubName ?? "snap", y.HubName ?? "snap", true);
-            if (hubCompare == 0)
-            {
-                return string.Compare(x.Name, y.Name, true);
-            }
-            return hubCompare;
+            return string.Compare(x.DisplayName, y.DisplayName, true);
         }
 
         public static readonly LoadedPageComparer Default = new();
@@ -356,17 +337,14 @@ namespace TrackingTags
         }
     }
 
-    public class PagesCatalog
+    public class ScriptsCatalog
     {
-        public PagesCatalog()
+        public ScriptsCatalog()
         {
-            Pages = [];
-            Hubs = new Dictionary<string, IList<HubPageEntry>>();
+            Hubs = new Dictionary<string, IList<PageEntry>>();
         }
 
-        public IList<PageEntry> Pages { get; set; }
-
-        public IDictionary<string, IList<HubPageEntry>> Hubs { get; set; }
+        public IDictionary<string, IList<PageEntry>> Hubs { get; set; }
     }
 
     public class PageEntry
@@ -380,27 +358,9 @@ namespace TrackingTags
         public string? PageName { get; set; }
     }
 
-    public class HubPageEntry
-    {
-        public HubPageEntry()
-        {
-            Name = string.Empty;
-        }
-
-        public string Name { get; set; }
-        public string? PageName { get; set; }
-        public IList<string>? Users { get; set; }
-    }
-
     public class LoadedPage
     {
-        public LoadedPage(PageEntry page)
-        {
-            Name = page.Name;
-            PageName = page.PageName;
-        }
-
-        public LoadedPage(string hubName, HubPageEntry page)
+        public LoadedPage(string hubName, PageEntry page)
         {
             HubName = hubName;
             Name = page.Name;
@@ -411,25 +371,26 @@ namespace TrackingTags
         {
             get
             {
-                if (!string.IsNullOrEmpty(HubName))
+                if (string.IsNullOrEmpty(HubName))
                 {
-                    return $"{HubName}:{Name}";
+                    return Name;
                 }
-                return Name;
+                return $"{HubName}:{Name}";
             }
         }
+
+        public string HubName { get; private set; }
         public string Name { get; private set; }
         public string? PageName { get; private set; }
-        public string? HubName { get; private set; }
         public string DisplayName
         {
             get
             {
-                if (!string.IsNullOrEmpty(HubName))
+                if (HubName == "other")
                 {
-                    return $"{HubName}_{Name}";
+                    return Name;
                 }
-                return Name;
+                return $"{HubName}_{Name}";
             }
         }
     }
