@@ -28,9 +28,8 @@ enum FocusedField: Hashable {
          page
 }
 
-struct PageCatalog: Codable {
-    var pages: [Page]
-    var hubs: [String: [HubPage]]?
+struct ScriptsCatalog: Codable {
+    var hubs: [String: [Page]]
 }
 
 struct Page: Codable {
@@ -39,36 +38,25 @@ struct Page: Codable {
     let pageName: String?
 }
 
-struct HubPage: Codable {
-    var id: String { name }
-    let name: String
-    let pageName: String?
-    let users: [String]?
-}
-
 struct LoadedPage: Codable, Identifiable {
     var id: String {
-        if let hub = self.hubName {
-            return "\(hub):\(self.name)"
+        if self.hub.isEmpty {
+            return self.name
         }
-        return self.name
+        return "\(self.hub):\(self.name)"
     }
+    let hub: String
     let name: String
     let pageName: String?
-    let hubName: String?
     var displayName: String {
-        if let hub = hubName {
-            return "\(hub)_\(name)"
+        if hub == "other" {
+            return name
         }
-        return name;
-    }
-
-    static func from(page: Page) -> LoadedPage {
-        return LoadedPage(name: page.name, pageName: page.pageName, hubName: nil)
+        return "\(hub)_\(name)"
     }
     
-    static func from(hubPage: HubPage, with name: String) -> LoadedPage {
-        return LoadedPage(name: hubPage.name, pageName: hubPage.pageName, hubName: name)
+    static func from(hub: String, page: Page) -> LoadedPage {
+        return LoadedPage(hub: hub, name: page.name, pageName: page.pageName)
     }
 }
 

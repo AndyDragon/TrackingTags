@@ -166,37 +166,25 @@ struct ContentView: View {
         .task {
             do {
                 let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
-                let pagesCatalog = try await URLSession.shared.decode(PageCatalog.self, from: pagesUrl)
+                let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
                 var pages = [LoadedPage]()
-                pages.append(contentsOf: pagesCatalog.pages.map({ LoadedPage.from(page: $0) }))
-                pages.append(LoadedPage(name: "community", pageName: "community", hubName: nil))
-                let user = "\(ProcessInfo.processInfo.userName)@\(ProcessInfo.processInfo.hostName)".lowercased()
-                let userKey = user
-                    .sha256()
-                    .hexEncodedString(options: .upperCase)
-                for hubPair in (pagesCatalog.hubs ?? [:]) {
+                for hubPair in (pagesCatalog.hubs) {
                     for hubPage in hubPair.value {
-                        if let pageUsers = hubPage.users {
-                            if pageUsers.includesWithoutCase(userKey) {
-                                pages.append(LoadedPage.from(hubPage: hubPage, with: hubPair.key))
-                            }
-                        } else {
-                            pages.append(LoadedPage.from(hubPage: hubPage, with: hubPair.key))
-                        }
+                        pages.append(LoadedPage.from(hub: hubPair.key, page: hubPage))
                     }
                 }
                 loadedPages.removeAll()
                 loadedPages.append(contentsOf: pages.sorted(by: {
-                    if $0.name.starts(with: "_") && $1.name.starts(with: "_") {
+                    if $0.hub == "other" && $1.hub == "other" {
                         return $0.name < $1.name
                     }
-                    if $0.name.starts(with: "_") {
+                    if $0.hub == "other" {
                         return false
                     }
-                    if $1.name.starts(with: "_") {
+                    if $1.hub == "other" {
                         return true
                     }
-                    return "\($0.hubName ?? "snap")_\($0.name)" < "\($1.hubName ?? "snap")_\($1.name)"
+                    return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
                 }))
 
                 do {
@@ -218,19 +206,19 @@ struct ContentView: View {
         trackingTags.removeAll()
         UserDefaults.standard.set(page, forKey: "Page")
         if !page.isEmpty && !userName.isEmpty {
-            let loadedPage = loadedPages.first(where: { pageEntry in pageEntry.id == page})
-            var pageName = loadedPage?.pageName ?? loadedPage?.name ?? "unknown"
-            if pageName.starts(with: "_") {
-                pageName = String(pageName.dropFirst(1))
-                trackingTags.append(TrackingTag("\(pageName)_\(userName)"))
-            } else {
-                trackingTags.append(TrackingTag("\(loadedPage?.hubName ?? "snap")_\(pageName)_\(userName)"))
-                if loadedPage?.hubName == nil {
-                    trackingTags.append(TrackingTag("raw_\(pageName)_\(userName)"))
-                }
-                trackingTags.append(TrackingTag("\(loadedPage?.hubName ?? "snap")_featured_\(userName)"))
-                if loadedPage?.hubName == nil {
-                    trackingTags.append(TrackingTag("raw_featured_\(userName)"))
+            let foundPage = loadedPages.first(where: { pageEntry in pageEntry.id == page})
+            if let loadedPage = foundPage {
+                if loadedPage.hub == "other" {
+                    trackingTags.append(TrackingTag("\(loadedPage.pageName ?? loadedPage.name)_\(userName)"))
+                } else {
+                    trackingTags.append(TrackingTag("\(loadedPage.hub)_\(loadedPage.pageName ?? loadedPage.name)_\(userName)"))
+                    if loadedPage.hub == "snap" {
+                        trackingTags.append(TrackingTag("raw_\(loadedPage.pageName ?? loadedPage.name)_\(userName)"))
+                    }
+                    trackingTags.append(TrackingTag("\(loadedPage.hub)_featured_\(userName)"))
+                    if loadedPage.hub == "snap" {
+                        trackingTags.append(TrackingTag("raw_featured_\(userName)"))
+                    }
                 }
             }
         }
