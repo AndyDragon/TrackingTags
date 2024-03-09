@@ -53,5 +53,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.5",
+        "notes": [
+            {
+                "date": "March 9, 2024",
+                "notes": [
+                    "Minor cleanup, remove new window command"
+                ]
+            }
+        ]
     }
 ]

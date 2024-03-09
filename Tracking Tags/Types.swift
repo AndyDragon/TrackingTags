@@ -71,3 +71,15 @@ struct VersionEntry: Codable {
     let link: String
     let vital: Bool
 }
+
+struct VersionCheckToast {
+    var appVersion: String
+    var currentVersion: String
+    var linkToCurrentVersion: String
+    
+    init(appVersion: String = "unknown", currentVersion: String = "unknown", linkToCurrentVersion: String = "") {
+        self.appVersion = appVersion
+        self.currentVersion = currentVersion
+        self.linkToCurrentVersion = linkToCurrentVersion
+    }
+}

@@ -23,7 +23,9 @@ struct ContentView: View {
     @State var loadedPages = [LoadedPage]()
     var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
-        isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue
+        isShowingToast || 
+        appState.isShowingVersionAvailableToast.wrappedValue ||
+        appState.isShowingVersionRequiredToast.wrappedValue
     }
 
     init(_ appState: VersionCheckAppState) {
@@ -88,18 +90,10 @@ struct ContentView: View {
             }
             .padding()
             .allowsHitTesting(!isAnyToastShowing)
-            if isAnyToastShowing {
-                VStack {
-                    Rectangle().opacity(0.0000001)
-                }
-                .onTapGesture {
-                    if isShowingToast {
-                        isShowingToast.toggle()
-                    } else if appState.isShowingVersionAvailableToast.wrappedValue {
-                        appState.isShowingVersionAvailableToast.wrappedValue.toggle()
-                    }
-                }
-            }
+            ToastDismissShield(
+                isAnyToastShowing: isAnyToastShowing,
+                isShowingToast: $isShowingToast,
+                isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
         }
         .blur(radius: isAnyToastShowing ? 4 : 0)
         .toast(
@@ -127,7 +121,7 @@ struct ContentView: View {
                     displayMode: .hud,
                     type: .systemImage("exclamationmark.triangle.fill", .yellow),
                     title: "New version available",
-                    subTitle: "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) and v\(appState.versionCheckToast.wrappedValue.currentVersion) is available\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") (this will go away in 10 seconds)")
+                    subTitle: getVersionSubTitle())
             },
             onTap: {
                 if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
@@ -148,7 +142,7 @@ struct ContentView: View {
                     displayMode: .hud,
                     type: .systemImage("xmark.octagon.fill", .red),
                     title: "New version required",
-                    subTitle: "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) and v\(appState.versionCheckToast.wrappedValue.currentVersion) is required\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") or ⌘ + Q to Quit")
+                    subTitle: getVersionSubTitle())
             },
             onTap: {
                 if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
@@ -224,6 +218,21 @@ struct ContentView: View {
         }
     }
 
+    private func getVersionSubTitle() -> String {
+        if appState.isShowingVersionAvailableToast.wrappedValue {
+            return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " +
+            "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is available" +
+            "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") " +
+            "(this will go away in 10 seconds)"
+        } else if appState.isShowingVersionRequiredToast.wrappedValue {
+            return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " +
+            "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is required" +
+            "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") " +
+            "or ⌘ + Q to Quit"
+        }
+        return ""
+    }
+    
     private func showToast(_ text: String, _ subTitle: String, duration: Double = 3.0) {
         toastType = .complete(.blue)
         toastText = text
