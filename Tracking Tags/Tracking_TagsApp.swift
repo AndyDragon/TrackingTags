@@ -12,7 +12,7 @@ struct VersionCheckToast {
     var appVersion: String
     var currentVersion: String
     var linkToCurrentVersion: String
-    
+
     init(appVersion: String = "unknown", currentVersion: String = "unknown", linkToCurrentVersion: String = "") {
         self.appVersion = appVersion
         self.currentVersion = currentVersion
@@ -25,7 +25,7 @@ struct VersionCheckAppState {
     var isShowingVersionAvailableToast: Binding<Bool>
     var isShowingVersionRequiredToast: Binding<Bool>
     var versionCheckToast: Binding<VersionCheckToast>
-    
+
     init(
         isCheckingForUpdates: Binding<Bool>,
         isShowingVersionAvailableToast: Binding<Bool>,
@@ -36,18 +36,18 @@ struct VersionCheckAppState {
             self.isShowingVersionRequiredToast = isShowingVersionRequiredToast
             self.versionCheckToast = versionCheckToast
         }
-    
+
     func checkForUpdates() {
         isCheckingForUpdates.wrappedValue = true
         Task {
             try? await checkForUpdatesAsync()
         }
     }
-    
+
     func resetCheckingForUpdates() {
         isCheckingForUpdates.wrappedValue = false
     }
-    
+
     private func checkForUpdatesAsync() async throws -> Void {
         do {
             // Check version from server manifest
@@ -83,7 +83,7 @@ struct Tracking_TagsApp: App {
     @State var isShowingVersionAvailableToast: Bool = false
     @State var isShowingVersionRequiredToast: Bool = false
     @State var versionCheckToast = VersionCheckToast()
-    
+
     var body: some Scene {
         let appState = VersionCheckAppState(
             isCheckingForUpdates: $checkingForUpdates,
@@ -103,6 +103,7 @@ struct Tracking_TagsApp: App {
                 })
                 .disabled(checkingForUpdates)
             })
+            CommandGroup(replacing: CommandGroupPlacement.newItem) { }
         }
     }
 }
