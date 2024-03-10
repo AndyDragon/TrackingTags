@@ -16,6 +16,8 @@ export const applicationDetails = (
 );
 export const macScreenshotWidth = 720;
 export const macScreenshotHeight = 400;
+export const windowsScreenshotWidth = 620;
+export const windowsScreenshotHeight = 310;
 
 export const deploymentWebLocation = "/app/trackingtags";
 
