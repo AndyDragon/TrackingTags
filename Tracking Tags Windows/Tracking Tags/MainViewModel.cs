@@ -11,6 +11,7 @@ using Notification.Wpf;
 using ControlzEx.Theming;
 using System.Text;
 using System.Security.Cryptography;
+using System.Windows.Media;
 
 namespace TrackingTags
 {
@@ -66,12 +67,31 @@ namespace TrackingTags
                     {
                         ThemeManager.Current.ChangeTheme(Application.Current, Theme);
                         UserSettings.Store("theme", Theme.Name);
+                        OnPropertyChanged(nameof(StatusBarBrush));
+                        OnPropertyChanged(nameof(Themes));
                     }
                 }
             }
         }
 
         public ThemeOption[] Themes => [.. ThemeManager.Current.Themes.OrderBy(theme => theme.Name).Select(theme => new ThemeOption(theme, theme == Theme))];
+
+        private bool windowActive = false;
+        public bool WindowActive
+        {
+            get => windowActive;
+            set
+            {
+                if (Set(ref windowActive, value))
+                {
+                    OnPropertyChanged(nameof(StatusBarBrush));
+                }
+            }
+        }
+
+        public Brush? StatusBarBrush => WindowActive
+            ? Theme?.Resources["MahApps.Brushes.Accent2"] as Brush
+            : Theme?.Resources["MahApps.Brushes.WindowTitle.NonActive"] as Brush;
 
         #endregion
 

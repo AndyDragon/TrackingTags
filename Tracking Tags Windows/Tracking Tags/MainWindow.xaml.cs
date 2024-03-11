@@ -12,5 +12,13 @@ namespace TrackingTags
         {
             InitializeComponent();
         }
+
+        private void OnActivatedChanged(object sender, EventArgs e)
+        {
+            if (this.DataContext is MainViewModel viewModel)
+            {
+                viewModel.WindowActive = IsActive;
+            }
+        }
     }
 }
