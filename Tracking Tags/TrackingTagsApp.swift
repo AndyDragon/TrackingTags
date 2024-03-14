@@ -1,5 +1,5 @@
 //
-//  Tracking_TagsApp.swift
+//  TrackingTagsApp.swift
 //  Tracking Tags
 //
 //  Created by Andrew Forget on 2024-02-16.
@@ -20,7 +20,8 @@ struct TrackingTagsApp: App {
             isCheckingForUpdates: $checkingForUpdates,
             isShowingVersionAvailableToast: $isShowingVersionAvailableToast,
             isShowingVersionRequiredToast: $isShowingVersionRequiredToast,
-            versionCheckToast: $versionCheckToast)
+            versionCheckToast: $versionCheckToast,
+            versionLocation: "https://vero.andydragon.com/static/data/trackingtags/version.json")
         WindowGroup {
             ContentView(appState)
         }

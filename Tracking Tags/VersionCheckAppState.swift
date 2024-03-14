@@ -7,21 +7,46 @@
 
 import SwiftUI
 
+struct VersionManifest: Codable {
+    let macOS: VersionEntry
+}
+
+struct VersionEntry: Codable {
+    let current: String
+    let link: String
+    let vital: Bool
+}
+
+struct VersionCheckToast {
+    var appVersion: String
+    var currentVersion: String
+    var linkToCurrentVersion: String
+    
+    init(appVersion: String = "unknown", currentVersion: String = "unknown", linkToCurrentVersion: String = "") {
+        self.appVersion = appVersion
+        self.currentVersion = currentVersion
+        self.linkToCurrentVersion = linkToCurrentVersion
+    }
+}
+
 struct VersionCheckAppState {
     private var isCheckingForUpdates: Binding<Bool>
     var isShowingVersionAvailableToast: Binding<Bool>
     var isShowingVersionRequiredToast: Binding<Bool>
     var versionCheckToast: Binding<VersionCheckToast>
+    private var versionLocation: String
     
     init(
         isCheckingForUpdates: Binding<Bool>,
         isShowingVersionAvailableToast: Binding<Bool>,
         isShowingVersionRequiredToast: Binding<Bool>,
-        versionCheckToast: Binding<VersionCheckToast>) {
+        versionCheckToast: Binding<VersionCheckToast>,
+        versionLocation: String) {
             self.isCheckingForUpdates = isCheckingForUpdates
             self.isShowingVersionAvailableToast = isShowingVersionAvailableToast
             self.isShowingVersionRequiredToast = isShowingVersionRequiredToast
             self.versionCheckToast = versionCheckToast
+            self.versionLocation = versionLocation
         }
     
     func checkForUpdates() {
@@ -38,7 +63,7 @@ struct VersionCheckAppState {
     private func checkForUpdatesAsync() async throws -> Void {
         do {
             // Check version from server manifest
-            let versionManifestUrl = URL(string: "https://vero.andydragon.com/static/data/trackingtags/version.json")!
+            let versionManifestUrl = URL(string: versionLocation)!
             let versionManifest = try await URLSession.shared.decode(VersionManifest.self, from: versionManifestUrl)
             if Bundle.main.releaseVersionOlder(than: versionManifest.macOS.current) {
                 DispatchQueue.main.async {
@@ -60,6 +85,7 @@ struct VersionCheckAppState {
         } catch {
             // do nothing, the version check is not critical
             debugPrint(error.localizedDescription)
+            resetCheckingForUpdates()
         }
     }
 }
