@@ -99,3 +99,5 @@ Tracking Tags Windows/Tracking Tags/bin/
 
 *.xcbkptlist
 **/xcuserdata/
+
+**/PublishProfiles/*.user
