@@ -299,7 +299,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Tracking Tags/TrackingTags.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Tracking Tags/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -329,7 +329,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Tracking Tags/TrackingTags.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Tracking Tags/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;

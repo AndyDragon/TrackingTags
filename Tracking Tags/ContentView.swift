@@ -71,7 +71,7 @@ struct ContentView: View {
                             Spacer()
                             Button(action: {
                                 copyToClipboard(trackingTag.tag)
-                                showToast("Copied!", "Copied \(trackingTag.tag) to the clipboard")
+                                showToast(.complete(.blue), "Copied!", "Copied \(trackingTag.tag) to the clipboard")
                             }) {
                                 HStack {
                                     Image(systemName: "clipboard")
@@ -191,7 +191,11 @@ struct ContentView: View {
                     debugPrint(error.localizedDescription)
                 }
             } catch {
-                debugPrint(error.localizedDescription)
+                showToast(
+                    .error(.red),
+                    "Failed to load pages",
+                    "The application requires the catalog to perform its operations: \(error.localizedDescription)",
+                    duration: 10)
             }
         }
     }
@@ -233,8 +237,12 @@ struct ContentView: View {
         return ""
     }
     
-    private func showToast(_ text: String, _ subTitle: String, duration: Double = 3.0) {
-        toastType = .complete(.blue)
+    private func showToast(
+        _ type: AlertToast.AlertType,
+        _ text: String, 
+        _ subTitle: String,
+        duration: Double = 3.0) {
+        toastType = type
         toastText = text
         toastSubTitle = subTitle
         toastDuration = duration
